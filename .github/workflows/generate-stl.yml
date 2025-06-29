@@ -1,0 +1,43 @@
+name: Generate stl files
+on: [push, pull_request]
+
+# This workflow generates STL files from the OpenSCAD source files in the repository and commits them to the stl folder using the openscad docker image
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    docker:
+      - image: openscad/openscad:latest
+        options: --entrypoint /bin/bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Generate STL files with different parameters
+        run: |
+          # Ensure the stl directory exists
+          mkdir -p stl
+          # Generate the cover.stl file with default parameters
+          openscad -o "stl/cover.stl" cover.scad --export-format=stl
+
+          # Generate the cover.stl file with lid_hex=true
+          openscad -o "stl/cover_hex.stl" cover.scad --export-format=stl -D "lid_hex=true"
+
+          # cover bottom open 5cm high
+          openscad -o "stl/cover_bottom_open_5cm.stl" cover.scad --export-format=stl -D "bottom_wall_closed=false" -D "height=50"
+          # cover top and bottom open 5cm high
+          openscad -o "stl/cover_top_bottom_open_5cm.stl" cover.scad --export-format=stl -D "top_wall_closed=false" -D "bottom_wall_closed=false" -D "height=50"
+
+          # cover top and bottom open 10 cm high
+          openscad -o "stl/cover_top_bottom_open_10cm.stl" cover.scad --export-format=stl -D "top_wall_closed=false" -D "bottom_wall_closed=false" -D "height=100"
+
+          # all in hex -D "lid_hex=true"
+          openscad -o "stl/cover_top_bottom_open_5cm_hex.stl" cover.scad --export-format=stl -D "top_wall_closed=false" -D "bottom_wall_closed=false" -D "top_wall_hex=true" -D "left_wall_hex=true" -D "right_wall_hex=true" -D "bottom_wall_hex=true" -D "height=50"
+          # all in hex 10 cm high -D "lid_hex=true"
+          openscad -o "stl/cover_top_bottom_open_10cm_hex.stl" cover.scad --export-format=stl -D "top_wall_closed=false" -D "bottom_wall_closed=false" -D "top_wall_hex=true" -D "left_wall_hex=true" -D "right_wall_hex=true" -D "bottom_wall_hex=true" -D "height=100"
+
+
+      - name: Commit and push STL files
+        uses: autocommit/auto-commit@v2
+        with:
+          commit_message: "Generate STL files"
+          branch: main
+          files: stl/*.stl
