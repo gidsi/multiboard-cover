@@ -5,12 +5,35 @@ on: [push, pull_request]
 jobs:
   generate:
     runs-on: ubuntu-latest
-    docker:
-      - image: openscad/openscad:latest
-        options: --entrypoint /bin/bash
+    permissions:
+      contents: write
+    container:
+      image: openscad/openscad:latest
+      options: --entrypoint /bin/bash
     steps:
+      - name: Install git
+        run: |
+          apt-get update
+          apt-get install -y git
+
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Check if .git folder is there
+        run: |
+          if [ ! -d ".git" ]; then
+            echo "No .git folder found, exiting."
+            exit 1
+          fi
+
+      - name: Checkout BelfrySCAD/BOSL2
+        uses: actions/checkout@v4
+        with:
+          repository: BelfrySCAD/BOSL2
+          path: BOSL2
+
       - name: Generate STL files with different parameters
         run: |
           # Ensure the stl directory exists
@@ -34,10 +57,14 @@ jobs:
           # all in hex 10 cm high -D "lid_hex=true"
           openscad -o "stl/cover_top_bottom_open_10cm_hex.stl" cover.scad --export-format=stl -D "top_wall_closed=false" -D "bottom_wall_closed=false" -D "top_wall_hex=true" -D "left_wall_hex=true" -D "right_wall_hex=true" -D "bottom_wall_hex=true" -D "height=100"
 
+          rm -rf BOSL2
+
+      - name: Fix git safe directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Commit and push STL files
-        uses: autocommit/auto-commit@v2
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "Generate STL files"
+          file_pattern: "stl/*.stl"
           branch: main
-          files: stl/*.stl
