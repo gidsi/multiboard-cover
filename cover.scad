@@ -71,10 +71,13 @@ module connector_port() {
 }
 
 module connector() {
-    translate([0,(5*.8)/2,0]) rotate([90,0,0]) scale([.5,.8,.8]) translate([0,0,-1]) difference() {
-        connector_port();
-        cube([7,5,1]);
-        translate([0,0,6]) cube([7,5,1]);
+    difference () {
+        translate([0,(5*.8)/2,0]) rotate([90,0,0]) scale([.5,.8,.8]) translate([0,0,-1]) difference() {
+            connector_port();
+            cube([7,5,1]);
+            translate([0,0,6]) cube([7,5,1]);
+        }
+        translate([0,-3.5,0]) rotate([0,45,0]) cube([7,7,7]);
     }
 }
 
@@ -191,3 +194,4 @@ box(
   ],
   lid_hex
 );
+
