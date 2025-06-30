@@ -140,7 +140,7 @@ module wall(width_param, left_wall=true, right_wall=true, hex_wall=false) {
     if(right_wall==true) {
         translate([wall_width,width-wall_width,0]) rotate([0,0,-90]) triangle(height+multiboard_height, triangle_side_length);
     } else {
-        translate([wall_width,width,multiboard_height]) rotate([0,0,-90]) triangle(height, triangle_side_length,true);
+        translate([wall_width,width,multiboard_height+height]) rotate([0,0,-90]) mirror([0,0,1]) triangle(height, triangle_side_length,true);
     }
     
     translate([wall_width,0,height+multiboard_height]) rotate([-90,0,0]) triangle(width, triangle_side_length);
@@ -194,4 +194,3 @@ box(
   ],
   lid_hex
 );
-
